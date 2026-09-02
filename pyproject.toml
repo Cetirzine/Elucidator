@@ -1,0 +1,83 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "elucidator-ashare"
+version = "0.1.0"
+description = "Leakage-safe A-share research scaffold for market and news factors"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "Proprietary research scaffold" }
+dependencies = [
+  "akshare>=1.17,<2",
+  "baostock>=0.8.9,<1",
+  "catboost>=1.2,<2",
+  "diskcache>=5.6,<6",
+  "duckdb>=1.2,<2",
+  "exchange-calendars>=4.8,<5",
+  "feedparser>=6.0,<7",
+  "httpx>=0.28,<1",
+  "jieba>=0.42,<1",
+  "lightgbm>=4.5,<5",
+  "matplotlib>=3.9,<4",
+  "mlflow-skinny>=3.0,<4",
+  "numpy>=1.26.4,<2",
+  "openai>=1.66,<3",
+  "optuna>=4.2,<5",
+  "orjson>=3.10,<4",
+  "pandas>=2.2,<3",
+  "pandera>=0.23,<1",
+  "polars>=1.20,<2",
+  "prophet>=1.1.7,<2",
+  "pyarrow>=18,<25",
+  "pydantic>=2.10,<3",
+  "pydantic-settings>=2.8,<3",
+  "pyqlib==0.9.7",
+  "python-dotenv>=1.0,<2",
+  "pyyaml>=6.0,<7",
+  "rapidfuzz>=3.12,<4",
+  "rich>=13.9,<15",
+  "scikit-learn>=1.5,<2",
+  "scipy>=1.13,<2",
+  "seaborn>=0.13,<1",
+  "shap>=0.46,<1",
+  "skfolio>=0.7,<1",
+  "statsmodels>=0.14,<1",
+  "tenacity>=9.0,<10",
+  "torch>=2.4,<3",
+  "tushare>=1.4,<2",
+  "typer>=0.15,<1",
+  "xgboost>=2.1,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.15,<2",
+  "pytest>=8.3,<9",
+  "pytest-cov>=6.0,<8",
+  "ruff>=0.9,<1",
+  "types-pyyaml>=6.0,<7",
+]
+
+[project.scripts]
+elucidator-preflight = "elucidator.preflight:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/elucidator"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["elucidator"]

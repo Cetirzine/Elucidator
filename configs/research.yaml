@@ -1,0 +1,104 @@
+project:
+  timezone: Asia/Shanghai
+  mode: research_and_paper_trading_only
+  random_seed: 20260731
+
+forecast:
+  # 交易日 t 18:00 形成信号，最早在 t+1 开盘后执行。
+  forecast_origin_local_time: "18:00:00"
+  execution: next_session_open_with_slippage
+  target: industry_and_index_residual_log_return
+  horizons_sessions: [1, 5, 20]
+  primary_horizon_sessions: 5
+
+universe:
+  # 用流动性合格的全市场面板训练；输出可再过滤到用户关注股票。
+  training: point_in_time_liquid_a_share_panel
+  selected_symbols: []
+  minimum_listing_sessions: 120
+  include_delisted_history: true
+  point_in_time_st_flag: true
+  point_in_time_constituents: true
+
+data:
+  storage: parquet_and_duckdb
+  market_primary: licensed_point_in_time_provider
+  market_development_fallback: tushare
+  news_primary: licensed_historical_news_provider
+  disclosures: official_exchange_and_company_disclosures
+  news_supplement: gdelt_bulk_gkg
+  require_fields:
+    - event_time
+    - published_at
+    - provider_first_seen_at
+    - ingested_at
+    - available_at
+    - source_id
+    - content_hash
+    - data_version
+
+news_factors:
+  llm_provider: openai_compatible
+  model_env: LLM_MODEL
+  default_model: deepseek-v4-flash
+  thinking: disabled
+  response_mode: json_object_then_local_schema_validation
+  cluster_before_aggregation: true
+  half_lives_hours: [2, 8, 24, 72]
+  families:
+    - entity_relevance
+    - event_type_and_materiality
+    - directional_sentiment
+    - uncertainty_and_speculation
+    - independent_source_count
+    - source_concentration
+    - cross_source_disagreement
+    - propagation_velocity
+    - novelty_and_repetition
+    - official_vs_media_gap
+
+models:
+  prophet:
+    role: benchmark_and_sector_regime_only
+  lstm:
+    role: global_panel_sequence_base_model
+    lookback_sessions: [20, 60, 120]
+  xgboost:
+    role: oof_meta_learner
+    objectives: [regression, pairwise_ranking]
+  challengers: [lightgbm_lambdarank, catboost, elastic_net]
+
+validation:
+  final_holdout: sealed
+  outer_split: expanding_walk_forward_by_date
+  inner_split: expanding_oof_by_date
+  minimum_train_sessions: 756
+  outer_test_sessions: 63
+  outer_step_sessions: 63
+  inner_folds: 5
+  purge_sessions: 20
+  embargo_sessions: 5
+  assert_available_at_lte_forecast_origin: true
+
+portfolio:
+  style: long_only_top_k_vs_benchmark
+  top_k: 30
+  industry_neutral: true
+  size_beta_neutral: true
+  max_name_weight: 0.05
+  max_daily_participation: 0.05
+  # 必须按实际券商和当期法规填写；缺失时禁止宣称成本后收益。
+  commission_bps: null
+  sell_stamp_duty_bps: null
+  slippage_model: volume_participation
+  enforce_t_plus_one: true
+  enforce_price_limits: true
+  enforce_suspensions: true
+
+gates:
+  require_positive_rank_ic_across_regimes: true
+  require_net_improvement_over_price_only_baseline: true
+  require_news_ablation: true
+  require_timestamp_delay_sensitivity_minutes: [5, 30, 60]
+  paper_trading_sessions_before_live: 60
+
